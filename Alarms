@@ -1,0 +1,59 @@
+import tkinter as tk
+from datetime import datetime, timedelta
+import time
+
+class AlarmClock:
+    def _init_(self, root):
+        self.root = root
+        self.root.title("Alarm Clock")
+
+        self.time_var = tk.StringVar()
+        self.time_var.set(self.get_current_time())
+
+        self.label = tk.Label(root, textvariable=self.time_var, font=("Helvetica", 48))
+        self.label.pack(padx=20, pady=20)
+
+        self.entry_label = tk.Label(root, text="Set Alarm (HH:MM):")
+        self.entry_label.pack(pady=(0, 10))
+
+        self.entry = tk.Entry(root, font=("Helvetica", 20))
+        self.entry.pack()
+
+        self.set_button = tk.Button(root, text="Set Alarm", command=self.set_alarm)
+        self.set_button.pack(pady=(10, 20))
+
+        self.check_alarm()
+
+    def get_current_time(self):
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+        return current_time
+
+    def check_alarm(self):
+        current_time = self.get_current_time()
+        if current_time == self.entry.get():
+            self.show_alarm_popup()
+        self.time_var.set(current_time)
+        self.root.after(1000, self.check_alarm)
+
+    def set_alarm(self):
+        alarm_time_str = self.entry.get()
+        try:
+            alarm_time = datetime.strptime(alarm_time_str, "%H:%M")
+            current_time = datetime.now().replace(second=0, microsecond=0)
+            time_difference = alarm_time - current_time
+            if time_difference.total_seconds() < 0:
+                # If the entered time is in the past, set it for the next day
+                alarm_time += timedelta(days=1)
+
+            self.root.after(int(time_difference.total_seconds() * 1000), self.show_alarm_popup)
+        except ValueError:
+            tk.messagebox.showerror("Error", "Invalid time format. Please use HH:MM.")
+
+    def show_alarm_popup(self):
+        tk.messagebox.showinfo("Alarm", "Time's up! Wake up!")
+
+if _name_ == "_main_":
+    root = tk.Tk()
+    alarm_clock = AlarmClock(root)
+    root.mainloop()
